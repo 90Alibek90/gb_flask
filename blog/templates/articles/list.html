@@ -1,21 +1,29 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block title %}
-    Article list
+Articles list
 {% endblock %}
 {% block body %}
-    <div class="row">
-        <div class="col">
-            <h1>Articles:</h1>
-            {% for article in articles %}
-                <ul>
-                    <li>
-                        <a href="{{ url_for('article.get_article', pk=article.id) }}">
-                            {{ article.title }} ({{ article.author.user.last_name }})
-                        </a>
-                    </li>
-                </ul>
-            {% endfor %}
-        </div>
-    </div>
+<h1>Articles</h1>
+<div>
+    <ul>
+        {% for title in articles %}
+        <li>
+            {{ title }}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<div>
+    <ul>
+        {% for article in articles %}
+        <li>
+            <a href="{{ url_for('articles_app.details', article_id=article.id) }}">{{
+                article.title }}</a>
+            by {{ article.author.user.username }}
+        </li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <a href="{{ url_for('articles_app.create') }}">Create new</a>
+</div>
 {% endblock %}

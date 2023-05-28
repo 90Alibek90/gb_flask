@@ -1,15 +1,21 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block title %}
-    {{ article.title }}
+    Article #{{ article.id }}: {{ article.title }}
 {% endblock %}
 {% block body %}
-    <h1>
-        {{ article.title }}
-    </h1>
-    <p>
-    {{ article.text }}
-    <div>Author: {{ article.author.user.first_name }} {{ article.author.user.last_name }} ({{ article.author.id }})</div>
-    <div>Created at: {{ article.created_at }}</div>
-    <div>Updated at: {{ article.updated_at }}</div>
+    <h1>{{ article.title }}</h1>
+    <div>
+        <p>{{ article.body }}</p>
+        <div>Published {{ article.dt_created }}</div>
+        <div>by {{ article.author.user.username }}</div>
+    </div>
+    {% if article.tags %}
+        <div>Tags:</div>
+        <ul>
+            {% for tag in article.tags %}
+                <li>{{ tag.name }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}

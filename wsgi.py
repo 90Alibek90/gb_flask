@@ -1,7 +1,4 @@
 from blog.app import app, db
-from gb_web.app import create_app
-
-app = create_app()
 
 if __name__ == "__main__":
     app.run(
@@ -9,14 +6,14 @@ if __name__ == "__main__":
         debug=True,
     )
 
-@app.cli.command("init-db")
-def init_db():
-    """
-    Run in your terminal:
-    flask init-db
-    """
-    db.create_all()
-    print("done!")
+# @app.cli.command("init-db")
+# def init_db():
+#     """
+#     Run in your terminal:
+#     flask init-db
+#     """
+#     db.create_all()
+#     print("done!")
 
 
 @app.cli.command("create-users")
