@@ -1,4 +1,6 @@
-from blog.app import app, db
+from blog.app import app, db, create_app
+
+app = create_app()
 
 if __name__ == "__main__":
     app.run(
@@ -30,3 +32,4 @@ def create_users():
     db.session.add(james)
     db.session.commit()
     print("done! created users:", admin, james)
+
