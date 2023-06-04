@@ -46,8 +46,8 @@ def create_article():
         try:
             db.session.commit()
         except IntegrityError:
-            current_app.logger.exception("Could not create a new articles!")
-            error = "Could not create articles!"
+            current_app.logger.exception("Could not create a new article!")
+            error = "Could not create article!"
         else:
             return redirect(url_for("articles_app.details", article_id=article.id))
     return render_template("articles/create.html", form=form, error=error)
