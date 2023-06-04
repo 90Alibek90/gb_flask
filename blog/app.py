@@ -1,51 +1,63 @@
-from flask import Flask
+from flask import Flask, render_template, request, redirect, url_for
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database_setup import Base, Book
 
-from blog import commands
-from blog.extensions import db, login_manager, migrate, csrf, admin
-from blog.models import User
+app = Flask(__name__)
 
+# Подключаемся и создаем сессию базы данных
+engine = create_engine('sqlite:///books-collection.db?check_same_thread=False')
+Base.metadata.bind = engine
 
-def create_app() -> Flask:
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = ')c46i=c^-in+6v4^%cw$m11m5ubaz(3vob1ffcdysa5+t@+tdj'
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///blog.db"
-
-    register_extensions(app)
-    register_blueprints(app)
-    register_commands(app)
-    return app
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 
-def register_extensions(app):
-    db.init_app(app)
-    migrate.init_app(app, db, compare_type=True)
-    csrf.init_app(app)
-    admin.init_app(app)
-
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+# страница, которая будет отображать все книги в базе данных
+# Эта функция работает в режиме чтения.
+@app.route('/')
+@app.route('/books')
+def showBooks():
+    books = session.query(Book).all()
+    return render_template("books.html", books=books)
 
 
-def register_blueprints(app: Flask):
-    from blog.auth.views import auth
-    from blog.user.views import user
-    from blog.author.views import author
-    from blog.articles.views import article
-    from blog import admin
-
-    app.register_blueprint(user)
-    app.register_blueprint(auth)
-    app.register_blueprint(author)
-    app.register_blueprint(article)
-
-    admin.register_views()
+# Эта функция позволит создать новую книгу и сохранить ее в базе данных.
+@app.route('/books/new/', methods=['GET', 'POST'])
+def newBook():
+    if request.method == 'POST':
+        newBook = Book(title=request.form['name'], author=request.form['author'], genre=request.form['genre'])
+        session.add(newBook)
+        session.commit()
+        return redirect(url_for('showBooks'))
+    else:
+        return render_template('newBook.html')
 
 
-def register_commands(app: Flask):
-    app.cli.add_command(commands.create_init_user)
-    app.cli.add_command(commands.create_init_tags)
+# Эта функция позволит нам обновить книги и сохранить их в базе данных.
+@app.route("/books/<int:book_id>/edit/", methods=['GET', 'POST'])
+def editBook(book_id):
+    editedBook = session.query(Book).filter_by(id=book_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            editedBook.title = request.form['name']
+            return redirect(url_for('showBooks'))
+    else:
+        return render_template('editBook.html', book=editedBook)
+
+
+# Эта функция для удаления книг
+@app.route('/books/<int:book_id>/delete/', methods=['GET', 'POST'])
+def deleteBook(book_id):
+    bookToDelete = session.query(Book).filter_by(id=book_id).one()
+    if request.method == 'POST':
+        session.delete(bookToDelete)
+        session.commit()
+        return redirect(url_for('showBooks', book_id=book_id))
+    else:
+        return render_template('deleteBook.html', book=bookToDelete)
+
+
+if __name__ == '__main__':
+    app.debug = True
+    app.run(port=4996)

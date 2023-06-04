@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, ForeignKey, String, Text, DateTime, func
 from blog.models.article_tag import article_tag_association_table
 
+
 class Article(db.Model):
     id = Column(Integer, primary_key=True)
     author_id = Column(Integer, ForeignKey("author.id"))
@@ -18,3 +19,6 @@ class Article(db.Model):
         secondary=article_tag_association_table,
         back_populates="articles",
     )
+
+    def __str__(self):
+        return self.title
