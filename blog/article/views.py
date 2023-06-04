@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template
+from flask_login import login_required
 from werkzeug.exceptions import NotFound
 
-from user.views import get_user_name
+from ..user.views import get_user_name
 
 article = Blueprint("article", __name__, url_prefix="/article", static_folder="../static")
 
@@ -30,6 +31,7 @@ ARTICLES = {
 
 
 @article.route("/")
+@login_required
 def article_list():
     return render_template(
         "articles/list.html",
@@ -38,6 +40,7 @@ def article_list():
 
 
 @article.route("/<int:pk>")
+@login_required
 def get_article(pk: int):
     if pk in ARTICLES:
         article_raw = ARTICLES[pk]
