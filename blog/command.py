@@ -1,27 +1,25 @@
-from blog.app import db
-from wsgi import app
-
-@app.cli.command("init-db")
-def init_db():
-    """
-    Run in your terminal:
-    flask init-db
-    """
-    db.create_all()
-    print("done!")
+import os
 
 
-@app.cli.command("create-users")
-def create_users():
-    """
-    Run in your terminal:
-    flask create-users
-    > done! created users: <User #1 'admin'> <User #2 'james'>
-    """
-    from blog.models import User
-    admin = User(username="admin", is_staff=True)
-    james = User(username="james")
-    db.session.add(admin)
-    db.session.add(james)
-    db.session.commit()
-    print("done! created users:", admin, james)
+class BaseConfig(object):
+    DEBUG = False
+    TESTING = False
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    # SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    # DATABASE_URL = "sqlite:///db.sqlite"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = "abcdefg123456"
+    WTF_CSRF_ENABLED = True
+    FLASK_ADMIN_SWATCH = 'cosmo'
+    OPENAPI_URL_PREFIX = '/api/swagger'
+    OPENAPI_SWAGGER_UI_PATH = '/'
+    OPENAPI_SWAGGER_UI_VERSION = '3.22.0'
+
+
+class DevConfig(BaseConfig):
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+
+
+class TestingConfig(BaseConfig):
+    TESTING = True

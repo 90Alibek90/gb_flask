@@ -14,6 +14,15 @@ import os
 
 from flask_migrate import Migrate
 
+from blog.security import flask_bcrypt
+
+from blog.views.authors import authors_app
+
+from blog.admin import admin
+from blog.api import init_api
+
+
+
 
 app = Flask(__name__)
 
@@ -22,10 +31,18 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
-cfg_name = os.environ.get("CONFIG_NAME") or "ProductionConfig"
+
+
+cfg_name = os.environ.get("CONFIG_NAME") or "DevConfig"
 app.config.from_object(f"blog.configs.{cfg_name}")
 
+admin.init_app(app)
+
 migrate = Migrate(app, db, compare_type=True)
+
+flask_bcrypt.init_app(app)
+
+api = init_api(app)
 
 @app.route("/")
 def index():
@@ -97,16 +114,54 @@ def do_zero_division():
     return 1 / 0
 
 
+@app.cli.command("create-admin")
+def create_admin():
+
+
+    """
+    Run in your terminal:
+    ➜ flask create-admin
+    > created admin: <User #1 'admin'>
+    """
+    from blog.models import User
+
+    admin = User(username="admin", is_staff=True)
+    admin.password = os.environ.get("ADMIN_PASSWORD") or "adminpass"
+    db.session.add(admin)
+    db.session.commit()
+    print("created admin:", admin)
+
+
 @app.errorhandler(ZeroDivisionError)
 def handle_zero_division_error(error):
     print(error)  # prints str version of error: 'division by zero'
     app.logger.exception("Here's traceback for zero division error")
     return "Never divide by zero!", 400
 
+@app.cli.command("create-tags")
+def create_tags():
+    """
+    Run in your terminal:
+    ➜ flask create-tags
+    """
+    from blog.models import Tag
+    for name in [
+    "flask",
+    "django",
+    "python",
+    "sqlalchemy",
+    "news",
+    ]:
+    tag = Tag(name=name)
+    db.session.add(tag)
+    db.session.commit()
+    print("created tags")
 
 app.register_blueprint(users_app, url_prefix="/users")
 
 app.register_blueprint(articles_app, url_prefix="/articles")
+
+app.register_blueprint(authors_app, url_prefix="/authors")
 
 app.config["SECRET_KEY"] = "qwasaersdadafafafafaasdas"
 app.register_blueprint(auth_app, url_prefix="/")
